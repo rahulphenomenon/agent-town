@@ -1,4 +1,4 @@
-const BASE_URL = "/api";
+import { API_PREFIX } from "@paperclipai/shared";
 
 export class ApiError extends Error {
   status: number;
@@ -20,7 +20,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${BASE_URL}${path}`, {
+  const response = await fetch(`${API_PREFIX}${path}`, {
     credentials: "include",
     ...init,
     headers,

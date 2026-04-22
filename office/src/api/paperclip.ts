@@ -12,13 +12,8 @@ import type {
 import { request } from "./client";
 
 export const paperclipApi = {
-  async loadOfficeSnapshot(): Promise<OfficeSnapshot> {
-    const companies = await request<Company[]>("/companies");
-    const company = companies[0];
-
-    if (!company) {
-      throw new Error("No Paperclip companies found. Finish onboarding in the tracker first.");
-    }
+  async loadOfficeSnapshot(companyId: string): Promise<OfficeSnapshot> {
+    const company = await request<Company>(`/companies/${encodeURIComponent(companyId)}`);
 
     const [agents, issues, approvals, activity] = await Promise.all([
       request<Agent[]>(`/companies/${encodeURIComponent(company.id)}/agents`),
