@@ -17,7 +17,7 @@ export const paperclipApi = {
     const company = companies[0];
 
     if (!company) {
-      throw new Error("No Paperclip companies found.");
+      throw new Error("No Paperclip companies found. Finish onboarding in the tracker first.");
     }
 
     const [agents, issues, approvals, activity] = await Promise.all([
