@@ -25,6 +25,7 @@ body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 24px;
   max-width: 1120px;
   margin: 0 auto 28px;
@@ -63,6 +64,7 @@ body {
   border-radius: 999px;
   padding: 0.9rem 1.2rem;
   font: inherit;
+  white-space: nowrap;
 }
 
 .office-stage {
@@ -99,4 +101,24 @@ body {
   margin: 0;
   max-width: 28rem;
   color: rgba(245, 239, 226, 0.82);
+}
+
+@media (max-width: 720px) {
+  .office-app {
+    padding: 20px;
+  }
+
+  .office-shell {
+    gap: 18px;
+  }
+
+  .office-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .office-stage {
+    min-height: 320px;
+    padding: 20px;
+  }
 }
