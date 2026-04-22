@@ -142,8 +142,8 @@ export class OfficeScene extends Phaser.Scene {
 
     this.obstacleZones = collisionRects.map((rect) => {
       const zone = this.add.zone(
-        rect.x + rect.width / 2,
-        rect.y + rect.height / 2,
+        rect.x,
+        rect.y,
         rect.width,
         rect.height,
       );
