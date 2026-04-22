@@ -1,6 +1,9 @@
 import Phaser from "phaser";
+import { AgentActor } from "../actors/AgentActor";
+import { TalkBubble } from "../actors/TalkBubble";
 import { getCollisionRects } from "../layout/officeLayout";
 import { normalizeVelocity } from "../input/playerMovement";
+import type { OfficeAgentView } from "@/types/office";
 
 const WORLD_WIDTH = 768;
 const WORLD_HEIGHT = 384;
@@ -13,6 +16,10 @@ export class OfficeScene extends Phaser.Scene {
   public interactKey?: Phaser.Input.Keyboard.Key;
 
   public onInteractAgent?: (agentId: string | null) => void;
+
+  private agents = new Map<string, AgentActor>();
+
+  private talkBubble: TalkBubble | null = null;
 
   private player?: Phaser.Physics.Arcade.Sprite;
 
@@ -57,6 +64,29 @@ export class OfficeScene extends Phaser.Scene {
 
     const velocity = normalizeVelocity(direction, PLAYER_SPEED);
     this.player.setVelocity(velocity.x, velocity.y);
+
+    if (!this.interactKey || !Phaser.Input.Keyboard.JustDown(this.interactKey)) {
+      return;
+    }
+
+    let nearest: AgentActor | null = null;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    for (const actor of this.agents.values()) {
+      const distance = Phaser.Math.Distance.Between(
+        this.player.x,
+        this.player.y,
+        actor.sprite.x,
+        actor.sprite.y,
+      );
+
+      if (distance < nearestDistance) {
+        nearest = actor;
+        nearestDistance = distance;
+      }
+    }
+
+    this.onInteractAgent?.(nearest && nearestDistance <= 32 ? nearest.agentId : null);
   }
 
   private drawOfficeShell() {
@@ -65,10 +95,10 @@ export class OfficeScene extends Phaser.Scene {
     this.add.rectangle(384, 96, 768, 8, 0x24364a).setAlpha(0.8);
 
     const deskBankStyle = { fillColor: 0x3d4c66, strokeColor: 0x8aa0c6 };
-    this.add.rectangle(548, 112, 320, 42, deskBankStyle.fillColor)
+    this.add.rectangle(464, 112, 320, 42, deskBankStyle.fillColor)
       .setStrokeStyle(2, deskBankStyle.strokeColor)
       .setAlpha(0.94);
-    this.add.rectangle(548, 272, 320, 42, deskBankStyle.fillColor)
+    this.add.rectangle(464, 272, 320, 42, deskBankStyle.fillColor)
       .setStrokeStyle(2, deskBankStyle.strokeColor)
       .setAlpha(0.94);
 
@@ -93,12 +123,12 @@ export class OfficeScene extends Phaser.Scene {
       fontSize: "20px",
       color: "#f8f4ea",
     });
-    this.add.text(24, 354, "Arrow keys move. E is reserved for future interactions.", {
+    this.add.text(24, 354, "Arrow keys move. Press E near an agent to inspect them.", {
       fontFamily: "system-ui, sans-serif",
       fontSize: "14px",
       color: "#cfd8e6",
     });
-    this.add.text(530, 62, "Desk bank", {
+    this.add.text(446, 62, "Desk bank", {
       fontFamily: "system-ui, sans-serif",
       fontSize: "14px",
       color: "#eef3fb",
@@ -151,5 +181,45 @@ export class OfficeScene extends Phaser.Scene {
       zone.setVisible(false);
       return zone;
     });
+  }
+
+  syncAgents(views: OfficeAgentView[]) {
+    this.talkBubble ??= new TalkBubble(this);
+
+    const nextIds = new Set(views.map((view) => view.agentId));
+
+    for (const [agentId, actor] of this.agents) {
+      if (nextIds.has(agentId)) {
+        continue;
+      }
+
+      actor.sprite.destroy();
+      this.agents.delete(agentId);
+    }
+
+    for (const view of views) {
+      const actor =
+        this.agents.get(view.agentId)
+        ?? new AgentActor(this, view.agentId, 96, 96, "watercooler");
+
+      actor.sync(view);
+      this.agents.set(view.agentId, actor);
+    }
+
+    const talkingPair = views.find((view) => view.talkingWith);
+    if (!talkingPair) {
+      this.talkBubble.hide();
+      return;
+    }
+
+    const left = this.agents.get(talkingPair.agentId);
+    const right = talkingPair.talkingWith ? this.agents.get(talkingPair.talkingWith) : null;
+
+    if (!left || !right) {
+      this.talkBubble.hide();
+      return;
+    }
+
+    this.talkBubble.placeBetween(left.sprite, right.sprite);
   }
 }

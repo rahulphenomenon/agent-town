@@ -17,6 +17,12 @@ export function createOfficeGame(
     parent,
     width: 768,
     height: 384,
+    scale: {
+      mode: Phaser.Scale.FIT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      width: 768,
+      height: 384,
+    },
     physics: {
       default: "arcade",
       arcade: {
