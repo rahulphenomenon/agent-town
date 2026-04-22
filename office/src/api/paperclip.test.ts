@@ -92,6 +92,31 @@ describe("paperclipApi", () => {
     });
   });
 
+  it("forwards the abort signal to every snapshot request", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ id: "company-1", name: "Acme", issuePrefix: "ACME" }))
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(jsonResponse([]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const controller = new AbortController();
+
+    await paperclipApi.loadOfficeSnapshot("company-1", controller.signal);
+
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(init).toEqual(
+        expect.objectContaining({
+          signal: controller.signal,
+        }),
+      );
+    }
+  });
+
   it("sends Paperclip action calls to the correct endpoints", async () => {
     const fetchMock = vi
       .fn()
