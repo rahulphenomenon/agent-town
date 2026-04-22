@@ -283,7 +283,6 @@ describe("deriveOfficeAgents", () => {
           id: "approval-1",
           requestedByAgentId: "agent-1",
           status: "pending",
-          payload: { issueId: "issue-1" },
         }),
       ],
       activity: [
@@ -416,5 +415,50 @@ describe("deriveOfficeAgents", () => {
 
     expect(result.find((agent) => agent.agentId === "agent-1")?.talkingWith).toBe("agent-2");
     expect(result.find((agent) => agent.agentId === "agent-2")?.intent.mode).toBe("talking");
+  });
+
+  it("keeps issue snippets focused on the agent's mapped issue", () => {
+    const result = deriveOfficeAgents({
+      agents: [createAgent({ id: "agent-1", name: "CEO", status: "running" })],
+      issues: [
+        createIssue({
+          id: "issue-1",
+          title: "Ship the demo",
+          status: "blocked",
+          assigneeAgentId: "agent-1",
+        }),
+      ],
+      approvals: [],
+      activity: [
+        createActivity({
+          id: "event-1",
+          action: "issue.comment_added",
+          entityId: "issue-2",
+          actorId: "agent-1",
+          agentId: "agent-1",
+          details: { bodySnippet: "Unrelated update from another issue." },
+          createdAt: new Date(NOW - 10_000),
+        }),
+        createActivity({
+          id: "event-2",
+          action: "issue.blockers_updated",
+          entityId: "issue-1",
+          details: {
+            addedBlockedByIssues: [
+              {
+                id: "issue-3",
+                identifier: "PAP-3",
+                title: "Waiting on final product copy.",
+              },
+            ],
+          },
+          createdAt: new Date(NOW - 20_000),
+        }),
+      ],
+      previous: new Map(),
+      now: NOW,
+    });
+
+    expect(result[0]?.latestSnippet).toContain("Waiting on final product copy");
   });
 });

@@ -102,13 +102,22 @@ function normalizeHireResponse(response: AgentHireResponse): AgentHireResponse {
 
 export const paperclipApi = {
   async loadOfficeSnapshot(companyId: string, signal?: AbortSignal): Promise<OfficeSnapshot> {
-    const [company, agents, issues, approvals, activity] = await Promise.all([
+    const [company, agents, issues, pendingApprovals, revisionRequestedApprovals, activity] = await Promise.all([
       request<Company>(`/companies/${encodeURIComponent(companyId)}`, { signal }),
       request<Agent[]>(`/companies/${encodeURIComponent(companyId)}/agents`, { signal }),
       request<Issue[]>(`/companies/${encodeURIComponent(companyId)}/issues`, { signal }),
-      request<Approval[]>(`/companies/${encodeURIComponent(companyId)}/approvals`, { signal }),
+      request<Approval[]>(`/companies/${encodeURIComponent(companyId)}/approvals?status=pending`, { signal }),
+      request<Approval[]>(
+        `/companies/${encodeURIComponent(companyId)}/approvals?status=revision_requested`,
+        { signal },
+      ),
       request<ActivityEvent[]>(`/companies/${encodeURIComponent(companyId)}/activity`, { signal }),
     ]);
+    const approvals = Array.from(
+      new Map(
+        [...pendingApprovals, ...revisionRequestedApprovals].map((approval) => [approval.id, approval]),
+      ).values(),
+    );
 
     return {
       company: normalizeCompany(company),

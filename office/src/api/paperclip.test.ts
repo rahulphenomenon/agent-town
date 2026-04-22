@@ -106,6 +106,9 @@ describe("paperclipApi", () => {
         jsonResponse([approvalPayload()]),
       )
       .mockResolvedValueOnce(
+        jsonResponse([approvalPayload({ id: "approval-2", status: "revision_requested" })]),
+      )
+      .mockResolvedValueOnce(
         jsonResponse([activityPayload()]),
       );
 
@@ -116,7 +119,7 @@ describe("paperclipApi", () => {
     expect(snapshot.company.id).toBe("company-1");
     expect(snapshot.agents).toHaveLength(1);
     expect(snapshot.issues).toHaveLength(1);
-    expect(snapshot.approvals).toHaveLength(1);
+    expect(snapshot.approvals).toHaveLength(2);
     expect(snapshot.activity).toHaveLength(1);
     expect(snapshot.company.createdAt).toBeInstanceOf(Date);
     expect(snapshot.agents[0]?.lastHeartbeatAt).toBeInstanceOf(Date);
@@ -140,11 +143,16 @@ describe("paperclipApi", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
-      "/api/companies/company-1/approvals",
+      "/api/companies/company-1/approvals?status=pending",
       expect.any(Object),
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       5,
+      "/api/companies/company-1/approvals?status=revision_requested",
+      expect.any(Object),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      6,
       "/api/companies/company-1/activity",
       expect.any(Object),
     );
@@ -165,13 +173,14 @@ describe("paperclipApi", () => {
       .mockResolvedValueOnce(jsonResponse([agentPayload()]))
       .mockResolvedValueOnce(jsonResponse([issuePayload()]))
       .mockResolvedValueOnce(jsonResponse([approvalPayload()]))
+      .mockResolvedValueOnce(jsonResponse([approvalPayload({ id: "approval-2", status: "revision_requested" })]))
       .mockResolvedValueOnce(jsonResponse([activityPayload()]));
 
     vi.stubGlobal("fetch", fetchMock);
 
     const snapshotPromise = paperclipApi.loadOfficeSnapshot("company-1");
 
-    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
 
     resolveCompany(jsonResponse(companyPayload()));
 
@@ -187,6 +196,7 @@ describe("paperclipApi", () => {
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]));
     vi.stubGlobal("fetch", fetchMock);
 
@@ -194,7 +204,7 @@ describe("paperclipApi", () => {
 
     await paperclipApi.loadOfficeSnapshot("company-1", controller.signal);
 
-    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(fetchMock).toHaveBeenCalledTimes(6);
 
     for (const [, init] of fetchMock.mock.calls) {
       expect(init).toEqual(
@@ -413,6 +423,7 @@ describe("paperclipApi", () => {
 
     fetchMock
       .mockResolvedValueOnce(jsonResponse(companyPayload()))
+      .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))

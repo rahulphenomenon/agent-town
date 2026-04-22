@@ -127,22 +127,15 @@ function getActivitySnippet(event: ActivityEvent) {
   );
 }
 
-function approvalMatchesIssue(approval: Approval, issue: Issue | null) {
+function hasAttentionApproval(agent: Agent, issue: Issue | null, approvals: Approval[]) {
   if (!issue) return false;
 
-  const rawIssueIds = approval.payload.issueIds;
-  if (Array.isArray(rawIssueIds) && rawIssueIds.includes(issue.id)) return true;
-
-  return approval.payload.issueId === issue.id;
-}
-
-function hasAttentionApproval(agent: Agent, issue: Issue | null, approvals: Approval[]) {
   return approvals.some((approval) => {
     if (approval.status !== "pending" && approval.status !== "revision_requested") {
       return false;
     }
 
-    return approval.requestedByAgentId === agent.id || approvalMatchesIssue(approval, issue);
+    return approval.requestedByAgentId === agent.id;
   });
 }
 
@@ -266,7 +259,7 @@ function getLatestSnippet(
 ) {
   const relevantApprovalIds = new Set(
     approvals
-      .filter((approval) => approval.requestedByAgentId === agent.id || approvalMatchesIssue(approval, issue))
+      .filter((approval) => approval.requestedByAgentId === agent.id)
       .map((approval) => approval.id),
   );
 
@@ -277,7 +270,7 @@ function getLatestSnippet(
   for (const event of relevantEvents) {
     const isIssueEvent = issue != null && event.entityType === "issue" && event.entityId === issue.id;
     const isApprovalEvent = event.entityType === "approval" && relevantApprovalIds.has(event.entityId);
-    const isActorEvent = event.actorId === agent.id;
+    const isActorEvent = issue == null && event.actorId === agent.id;
     if (!isIssueEvent && !isApprovalEvent && !isActorEvent) continue;
 
     const snippet = getActivitySnippet(event);
