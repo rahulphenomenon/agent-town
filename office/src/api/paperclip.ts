@@ -11,6 +11,11 @@ import type {
 } from "@/types/office";
 import { request } from "./client";
 
+function withCompanyScope(path: string, companyId: string) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}companyId=${encodeURIComponent(companyId)}`;
+}
+
 export const paperclipApi = {
   async loadOfficeSnapshot(companyId: string, signal?: AbortSignal): Promise<OfficeSnapshot> {
     const [company, agents, issues, approvals, activity] = await Promise.all([
@@ -30,8 +35,8 @@ export const paperclipApi = {
     };
   },
 
-  addIssueComment(issueId: string, body: string, reopen?: boolean, interrupt?: boolean) {
-    return request<IssueComment>(`/issues/${encodeURIComponent(issueId)}/comments`, {
+  addIssueComment(companyId: string, issueId: string, body: string, reopen?: boolean, interrupt?: boolean) {
+    return request<IssueComment>(withCompanyScope(`/issues/${encodeURIComponent(issueId)}/comments`, companyId), {
       method: "POST",
       body: JSON.stringify({
         body,
@@ -51,8 +56,8 @@ export const paperclipApi = {
     );
   },
 
-  approveHire(approvalId: string, decisionNote?: string | null) {
-    return request<Approval>(`/approvals/${encodeURIComponent(approvalId)}/approve`, {
+  approveHire(companyId: string, approvalId: string, decisionNote?: string | null) {
+    return request<Approval>(withCompanyScope(`/approvals/${encodeURIComponent(approvalId)}/approve`, companyId), {
       method: "POST",
       body: JSON.stringify(
         decisionNote === undefined ? {} : { decisionNote },
@@ -60,22 +65,22 @@ export const paperclipApi = {
     });
   },
 
-  pauseAgent(agentId: string) {
-    return request<Agent>(`/agents/${encodeURIComponent(agentId)}/pause`, {
+  pauseAgent(companyId: string, agentId: string) {
+    return request<Agent>(withCompanyScope(`/agents/${encodeURIComponent(agentId)}/pause`, companyId), {
       method: "POST",
       body: JSON.stringify({}),
     });
   },
 
-  resumeAgent(agentId: string) {
-    return request<Agent>(`/agents/${encodeURIComponent(agentId)}/resume`, {
+  resumeAgent(companyId: string, agentId: string) {
+    return request<Agent>(withCompanyScope(`/agents/${encodeURIComponent(agentId)}/resume`, companyId), {
       method: "POST",
       body: JSON.stringify({}),
     });
   },
 
-  terminateAgent(agentId: string) {
-    return request<Agent>(`/agents/${encodeURIComponent(agentId)}/terminate`, {
+  terminateAgent(companyId: string, agentId: string) {
+    return request<Agent>(withCompanyScope(`/agents/${encodeURIComponent(agentId)}/terminate`, companyId), {
       method: "POST",
       body: JSON.stringify({}),
     });

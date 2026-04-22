@@ -103,19 +103,19 @@ describe("paperclipApi", () => {
       .mockResolvedValueOnce(jsonResponse({}));
     vi.stubGlobal("fetch", fetchMock);
 
-    await paperclipApi.addIssueComment("issue-1", "Need a progress update.", true, false);
+    await paperclipApi.addIssueComment("company-1", "issue-1", "Need a progress update.", true, false);
     await paperclipApi.createHire("company-1", {
       name: "Ava",
       adapterType: "droid",
     } as CreateAgentHire);
-    await paperclipApi.approveHire("approval-1", "Approved in office.");
-    await paperclipApi.pauseAgent("agent-1");
-    await paperclipApi.resumeAgent("agent-1");
-    await paperclipApi.terminateAgent("agent-1");
+    await paperclipApi.approveHire("company-1", "approval-1", "Approved in office.");
+    await paperclipApi.pauseAgent("company-1", "agent-1");
+    await paperclipApi.resumeAgent("company-1", "agent-1");
+    await paperclipApi.terminateAgent("company-1", "agent-1");
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      "/api/issues/issue-1/comments",
+      "/api/issues/issue-1/comments?companyId=company-1",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({
@@ -138,7 +138,7 @@ describe("paperclipApi", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       3,
-      "/api/approvals/approval-1/approve",
+      "/api/approvals/approval-1/approve?companyId=company-1",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({ decisionNote: "Approved in office." }),
@@ -146,7 +146,7 @@ describe("paperclipApi", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
-      "/api/agents/agent-1/pause",
+      "/api/agents/agent-1/pause?companyId=company-1",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({}),
@@ -154,7 +154,7 @@ describe("paperclipApi", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       5,
-      "/api/agents/agent-1/resume",
+      "/api/agents/agent-1/resume?companyId=company-1",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({}),
@@ -162,7 +162,7 @@ describe("paperclipApi", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       6,
-      "/api/agents/agent-1/terminate",
+      "/api/agents/agent-1/terminate?companyId=company-1",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({}),
@@ -177,12 +177,12 @@ describe("paperclipApi", () => {
       .mockResolvedValueOnce(jsonResponse({}));
     vi.stubGlobal("fetch", fetchMock);
 
-    await paperclipApi.addIssueComment("issue-1", "Just checking in.");
-    await paperclipApi.approveHire("approval-1");
+    await paperclipApi.addIssueComment("company-1", "issue-1", "Just checking in.");
+    await paperclipApi.approveHire("company-1", "approval-1");
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      "/api/issues/issue-1/comments",
+      "/api/issues/issue-1/comments?companyId=company-1",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({
@@ -192,7 +192,7 @@ describe("paperclipApi", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      "/api/approvals/approval-1/approve",
+      "/api/approvals/approval-1/approve?companyId=company-1",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({}),
@@ -260,5 +260,29 @@ describe("paperclipApi", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(fetchMock).toHaveBeenCalledWith("/api/companies/company-1", expect.any(Object));
+  });
+
+  it("fails manual refetch when no company is selected", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+
+    const { result } = renderHook(() => useOfficeWorldData(null), { wrapper });
+
+    await expect(result.current.refetch()).resolves.toMatchObject({
+      error: new Error("Company id is required to load office world data."),
+      status: "error",
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
