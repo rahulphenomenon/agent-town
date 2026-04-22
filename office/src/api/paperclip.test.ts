@@ -11,6 +11,72 @@ function jsonResponse(body: unknown) {
   return new Response(JSON.stringify(body));
 }
 
+function companyPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "company-1",
+    name: "Acme",
+    issuePrefix: "ACME",
+    createdAt: "2026-04-22T12:00:00.000Z",
+    updatedAt: "2026-04-22T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function agentPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "agent-1",
+    createdAt: "2026-04-22T12:01:00.000Z",
+    updatedAt: "2026-04-22T12:02:00.000Z",
+    pausedAt: null,
+    lastHeartbeatAt: null,
+    ...overrides,
+  };
+}
+
+function issuePayload(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "issue-1",
+    createdAt: "2026-04-22T12:04:00.000Z",
+    updatedAt: "2026-04-22T12:05:00.000Z",
+    executionLockedAt: null,
+    startedAt: null,
+    completedAt: null,
+    cancelledAt: null,
+    hiddenAt: null,
+    myLastTouchAt: null,
+    lastExternalCommentAt: null,
+    lastActivityAt: null,
+    ...overrides,
+  };
+}
+
+function approvalPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "approval-1",
+    createdAt: "2026-04-22T12:08:00.000Z",
+    updatedAt: "2026-04-22T12:09:00.000Z",
+    decidedAt: null,
+    ...overrides,
+  };
+}
+
+function activityPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "activity-1",
+    createdAt: "2026-04-22T12:10:00.000Z",
+    ...overrides,
+  };
+}
+
+function issueCommentPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "comment-1",
+    createdAt: "2026-04-22T12:11:00.000Z",
+    updatedAt: "2026-04-22T12:12:00.000Z",
+    ...overrides,
+  };
+}
+
 describe("paperclipApi", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -20,11 +86,28 @@ describe("paperclipApi", () => {
   it("loads the office snapshot from the company, agents, issues, approvals, and activity endpoints", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(jsonResponse({ id: "company-1", name: "Acme", issuePrefix: "ACME" }))
-      .mockResolvedValueOnce(jsonResponse([{ id: "agent-1" }]))
-      .mockResolvedValueOnce(jsonResponse([{ id: "issue-1" }]))
-      .mockResolvedValueOnce(jsonResponse([{ id: "approval-1" }]))
-      .mockResolvedValueOnce(jsonResponse([{ id: "activity-1" }]));
+      .mockResolvedValueOnce(
+        jsonResponse(companyPayload()),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([
+          agentPayload({ lastHeartbeatAt: "2026-04-22T12:03:00.000Z" }),
+        ]),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([
+          issuePayload({
+            executionLockedAt: "2026-04-22T12:06:00.000Z",
+            lastActivityAt: "2026-04-22T12:07:00.000Z",
+          }),
+        ]),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([approvalPayload()]),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([activityPayload()]),
+      );
 
     vi.stubGlobal("fetch", fetchMock);
 
@@ -35,6 +118,11 @@ describe("paperclipApi", () => {
     expect(snapshot.issues).toHaveLength(1);
     expect(snapshot.approvals).toHaveLength(1);
     expect(snapshot.activity).toHaveLength(1);
+    expect(snapshot.company.createdAt).toBeInstanceOf(Date);
+    expect(snapshot.agents[0]?.lastHeartbeatAt).toBeInstanceOf(Date);
+    expect(snapshot.issues[0]?.executionLockedAt).toBeInstanceOf(Date);
+    expect(snapshot.approvals[0]?.createdAt).toBeInstanceOf(Date);
+    expect(snapshot.activity[0]?.createdAt).toBeInstanceOf(Date);
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
       "/api/companies/company-1",
@@ -52,7 +140,7 @@ describe("paperclipApi", () => {
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
       4,
-      "/api/companies/company-1/approvals?status=pending",
+      "/api/companies/company-1/approvals",
       expect.any(Object),
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
@@ -74,10 +162,10 @@ describe("paperclipApi", () => {
             resolveCompany = resolve;
           }),
       )
-      .mockResolvedValueOnce(jsonResponse([{ id: "agent-1" }]))
-      .mockResolvedValueOnce(jsonResponse([{ id: "issue-1" }]))
-      .mockResolvedValueOnce(jsonResponse([{ id: "approval-1" }]))
-      .mockResolvedValueOnce(jsonResponse([{ id: "activity-1" }]));
+      .mockResolvedValueOnce(jsonResponse([agentPayload()]))
+      .mockResolvedValueOnce(jsonResponse([issuePayload()]))
+      .mockResolvedValueOnce(jsonResponse([approvalPayload()]))
+      .mockResolvedValueOnce(jsonResponse([activityPayload()]));
 
     vi.stubGlobal("fetch", fetchMock);
 
@@ -85,7 +173,7 @@ describe("paperclipApi", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(5);
 
-    resolveCompany(jsonResponse({ id: "company-1", name: "Acme", issuePrefix: "ACME" }));
+    resolveCompany(jsonResponse(companyPayload()));
 
     await expect(snapshotPromise).resolves.toMatchObject({
       company: { id: "company-1" },
@@ -95,7 +183,7 @@ describe("paperclipApi", () => {
   it("forwards the abort signal to every snapshot request", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(jsonResponse({ id: "company-1", name: "Acme", issuePrefix: "ACME" }))
+      .mockResolvedValueOnce(jsonResponse(companyPayload()))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
@@ -120,23 +208,72 @@ describe("paperclipApi", () => {
   it("sends Paperclip action calls to the correct endpoints", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(jsonResponse({}))
-      .mockResolvedValueOnce(jsonResponse({}))
-      .mockResolvedValueOnce(jsonResponse({}))
-      .mockResolvedValueOnce(jsonResponse({}))
-      .mockResolvedValueOnce(jsonResponse({}))
-      .mockResolvedValueOnce(jsonResponse({}));
+      .mockResolvedValueOnce(
+        jsonResponse(issueCommentPayload()),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          agent: agentPayload({
+            id: "agent-2",
+            createdAt: "2026-04-22T12:13:00.000Z",
+            updatedAt: "2026-04-22T12:14:00.000Z",
+          }),
+          approval: approvalPayload({
+            id: "approval-2",
+            createdAt: "2026-04-22T12:15:00.000Z",
+            updatedAt: "2026-04-22T12:16:00.000Z",
+          }),
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(approvalPayload({ decidedAt: "2026-04-22T12:19:00.000Z" })),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(
+          agentPayload({
+            createdAt: "2026-04-22T12:20:00.000Z",
+            updatedAt: "2026-04-22T12:21:00.000Z",
+            pausedAt: "2026-04-22T12:22:00.000Z",
+            lastHeartbeatAt: "2026-04-22T12:23:00.000Z",
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(
+          agentPayload({
+            createdAt: "2026-04-22T12:24:00.000Z",
+            updatedAt: "2026-04-22T12:25:00.000Z",
+            lastHeartbeatAt: "2026-04-22T12:26:00.000Z",
+          }),
+        ),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(
+          agentPayload({
+            createdAt: "2026-04-22T12:27:00.000Z",
+            updatedAt: "2026-04-22T12:28:00.000Z",
+          }),
+        ),
+      );
     vi.stubGlobal("fetch", fetchMock);
 
-    await paperclipApi.addIssueComment("company-1", "issue-1", "Need a progress update.", true, false);
-    await paperclipApi.createHire("company-1", {
+    const comment = await paperclipApi.addIssueComment("company-1", "issue-1", "Need a progress update.", true, false);
+    const hire = await paperclipApi.createHire("company-1", {
       name: "Ava",
       adapterType: "droid",
     } as CreateAgentHire);
-    await paperclipApi.approveHire("company-1", "approval-1", "Approved in office.");
-    await paperclipApi.pauseAgent("company-1", "agent-1");
-    await paperclipApi.resumeAgent("company-1", "agent-1");
-    await paperclipApi.terminateAgent("company-1", "agent-1");
+    const approval = await paperclipApi.approveHire("company-1", "approval-1", "Approved in office.");
+    const pausedAgent = await paperclipApi.pauseAgent("company-1", "agent-1");
+    const resumedAgent = await paperclipApi.resumeAgent("company-1", "agent-1");
+    const terminatedAgent = await paperclipApi.terminateAgent("company-1", "agent-1");
+
+    expect(comment.createdAt).toBeInstanceOf(Date);
+    expect(hire.agent.createdAt).toBeInstanceOf(Date);
+    expect(hire.approval?.createdAt).toBeInstanceOf(Date);
+    expect(approval.decidedAt).toBeInstanceOf(Date);
+    expect(pausedAgent.pausedAt).toBeInstanceOf(Date);
+    expect(resumedAgent.lastHeartbeatAt).toBeInstanceOf(Date);
+    expect(terminatedAgent.createdAt).toBeInstanceOf(Date);
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
@@ -198,8 +335,8 @@ describe("paperclipApi", () => {
   it("omits optional action fields when they are undefined", async () => {
     const fetchMock = vi
       .fn()
-      .mockResolvedValueOnce(jsonResponse({}))
-      .mockResolvedValueOnce(jsonResponse({}));
+      .mockResolvedValueOnce(jsonResponse(issueCommentPayload()))
+      .mockResolvedValueOnce(jsonResponse(approvalPayload()));
     vi.stubGlobal("fetch", fetchMock);
 
     await paperclipApi.addIssueComment("company-1", "issue-1", "Just checking in.");
@@ -275,7 +412,7 @@ describe("paperclipApi", () => {
     expect(result.current.fetchStatus).toBe("idle");
 
     fetchMock
-      .mockResolvedValueOnce(jsonResponse({ id: "company-1", name: "Acme", issuePrefix: "ACME" }))
+      .mockResolvedValueOnce(jsonResponse(companyPayload()))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(jsonResponse([]))

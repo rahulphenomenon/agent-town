@@ -85,10 +85,44 @@ function getEventDetailString(event: ActivityEvent, key: string) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
+function getIssueSummaryList(
+  event: ActivityEvent,
+  key: string,
+): Array<{ id: string | null; identifier: string | null; title: string | null }> {
+  const value = event.details?.[key];
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+
+    const candidate = item as Record<string, unknown>;
+    return [{
+      id: typeof candidate.id === "string" ? candidate.id : null,
+      identifier: typeof candidate.identifier === "string" ? candidate.identifier : null,
+      title: typeof candidate.title === "string" ? candidate.title : null,
+    }];
+  });
+}
+
+function getBlockerSnippet(event: ActivityEvent) {
+  if (event.action !== "issue.blockers_updated") return null;
+
+  const blocker =
+    getIssueSummaryList(event, "addedBlockedByIssues")[0] ??
+    getIssueSummaryList(event, "blockedByIssues")[0] ??
+    getIssueSummaryList(event, "removedBlockedByIssues")[0];
+
+  if (!blocker) return null;
+
+  const blockerLabel = blocker.identifier ?? blocker.id ?? "unknown blocker";
+  return blocker.title ? `Blocked by ${blockerLabel}: ${blocker.title}` : `Blocked by ${blockerLabel}`;
+}
+
 function getActivitySnippet(event: ActivityEvent) {
   return (
     getEventDetailString(event, "bodySnippet") ??
     getEventDetailString(event, "body") ??
+    getBlockerSnippet(event) ??
     getEventDetailString(event, "issueTitle")
   );
 }
@@ -181,9 +215,10 @@ function isHeadingToDesk(issue: Issue | null) {
 function getConversationPartner(
   event: ActivityEvent,
   issueById: Map<string, Issue>,
+  agentIds: Set<string>,
 ) {
   const actorId = event.actorId;
-  if (!actorId) return null;
+  if (!actorId || event.actorType !== "agent" || !agentIds.has(actorId)) return null;
 
   if (
     event.action !== "issue.comment_added" &&
@@ -197,20 +232,21 @@ function getConversationPartner(
 
   const issue = issueById.get(event.entityId);
   const assigneeId = issue?.assigneeAgentId ?? null;
-  if (!assigneeId || assigneeId === actorId) return null;
+  if (!assigneeId || assigneeId === actorId || !agentIds.has(assigneeId)) return null;
 
   return { left: actorId, right: assigneeId };
 }
 
-function inferTalkingPairs(issues: Issue[], activity: ActivityEvent[], now: number) {
+function inferTalkingPairs(agents: Agent[], issues: Issue[], activity: ActivityEvent[], now: number) {
   const pairs = new Map<string, string>();
+  const agentIds = new Set(agents.map((agent) => agent.id));
   const issueById = new Map(issues.map((issue) => [issue.id, issue]));
   const sortedRecentActivity = [...activity]
     .filter((event) => isRecent(event, now))
     .sort((left, right) => getActivityTimestamp(right) - getActivityTimestamp(left));
 
   for (const event of sortedRecentActivity) {
-    const partner = getConversationPartner(event, issueById);
+    const partner = getConversationPartner(event, issueById, agentIds);
     if (!partner) continue;
 
     if (pairs.has(partner.left) || pairs.has(partner.right)) continue;
@@ -265,7 +301,7 @@ function getLatestSnippet(
 
 export function deriveOfficeAgents(input: DeriveInput): OfficeAgentView[] {
   const issuesByAgent = selectAgentIssues(input.issues);
-  const talkingPairs = inferTalkingPairs(input.issues, input.activity, input.now);
+  const talkingPairs = inferTalkingPairs(input.agents, input.issues, input.activity, input.now);
 
   return input.agents.map((agent) => {
     const issue = issuesByAgent.get(agent.id) ?? null;

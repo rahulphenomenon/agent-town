@@ -236,7 +236,15 @@ describe("deriveOfficeAgents", () => {
           id: "event-1",
           action: "issue.blockers_updated",
           entityId: "issue-1",
-          details: { bodySnippet: "Need product input before continuing." },
+          details: {
+            addedBlockedByIssues: [
+              {
+                id: "issue-2",
+                identifier: "PAP-2",
+                title: "Need product input before continuing.",
+              },
+            ],
+          },
         }),
       ],
       previous: new Map(),
@@ -332,6 +340,44 @@ describe("deriveOfficeAgents", () => {
     expect(result.find((agent) => agent.agentId === "agent-1")?.talkingWith).toBe("agent-2");
     expect(result.find((agent) => agent.agentId === "agent-1")?.intent.mode).toBe("talking");
     expect(result.find((agent) => agent.agentId === "agent-2")?.talkingWith).toBe("agent-1");
+  });
+
+  it("ignores conversation activity created by non-agent actors", () => {
+    const result = deriveOfficeAgents({
+      agents: [
+        createAgent({ id: "agent-1", name: "CEO", status: "running" }),
+        createAgent({ id: "agent-2", name: "CTO", status: "running" }),
+      ],
+      issues: [
+        createIssue({
+          id: "issue-1",
+          title: "Ship demo",
+          status: "in_progress",
+          assigneeAgentId: "agent-1",
+          checkoutRunId: "run-1",
+          executionRunId: "run-1",
+          executionLockedAt: new Date(NOW),
+        }),
+      ],
+      approvals: [],
+      activity: [
+        createActivity({
+          id: "event-1",
+          actorType: "user",
+          actorId: "board",
+          action: "issue.comment_added",
+          entityId: "issue-1",
+          agentId: null,
+          details: { bodySnippet: "Please revise the launch plan." },
+          createdAt: new Date(NOW - 30_000),
+        }),
+      ],
+      previous: new Map(),
+      now: NOW,
+    });
+
+    expect(result.find((agent) => agent.agentId === "agent-1")?.talkingWith).toBeNull();
+    expect(result.find((agent) => agent.agentId === "agent-1")?.intent.mode).not.toBe("talking");
   });
 
   it("infers talking from recent interaction signals", () => {
