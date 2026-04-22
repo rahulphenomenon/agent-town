@@ -303,6 +303,36 @@ describe("deriveOfficeAgents", () => {
     expect(result[0]?.intent.mode).toBe("needs_attention");
   });
 
+  it("keeps issue-less agent approvals in needs_attention after the activity window", () => {
+    const result = deriveOfficeAgents({
+      agents: [createAgent({ id: "agent-1", name: "CEO", status: "idle" })],
+      issues: [],
+      approvals: [
+        createApproval({
+          id: "approval-1",
+          requestedByAgentId: "agent-1",
+          status: "revision_requested",
+        }),
+      ],
+      activity: [
+        createActivity({
+          id: "event-1",
+          action: "approval.revision_requested",
+          entityType: "approval",
+          entityId: "approval-1",
+          actorId: "board",
+          agentId: null,
+          createdAt: new Date(NOW - 10 * 60 * 1_000),
+        }),
+      ],
+      previous: new Map(),
+      now: NOW,
+    });
+
+    expect(result[0]?.intent.mode).toBe("needs_attention");
+    expect(result[0]?.latestSnippet).toBe("Board requested approval changes.");
+  });
+
   it("infers a symbolic conversation from recent issue comments", () => {
     const result = deriveOfficeAgents({
       agents: [

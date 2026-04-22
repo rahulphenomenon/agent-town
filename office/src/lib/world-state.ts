@@ -128,8 +128,6 @@ function getActivitySnippet(event: ActivityEvent) {
 }
 
 function hasAttentionApproval(agent: Agent, issue: Issue | null, approvals: Approval[]) {
-  if (!issue) return false;
-
   return approvals.some((approval) => {
     if (approval.status !== "pending" && approval.status !== "revision_requested") {
       return false;

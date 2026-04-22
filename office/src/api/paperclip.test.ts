@@ -189,6 +189,44 @@ describe("paperclipApi", () => {
     });
   });
 
+  it("keeps the newest approval snapshot when an approval appears in both actionable status responses", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(companyPayload()))
+      .mockResolvedValueOnce(jsonResponse([agentPayload()]))
+      .mockResolvedValueOnce(jsonResponse([issuePayload()]))
+      .mockResolvedValueOnce(
+        jsonResponse([
+          approvalPayload({
+            id: "approval-1",
+            status: "pending",
+            updatedAt: "2026-04-22T12:09:00.000Z",
+          }),
+        ]),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([
+          approvalPayload({
+            id: "approval-1",
+            status: "revision_requested",
+            updatedAt: "2026-04-22T12:10:00.000Z",
+          }),
+        ]),
+      )
+      .mockResolvedValueOnce(jsonResponse([activityPayload()]));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const snapshot = await paperclipApi.loadOfficeSnapshot("company-1");
+
+    expect(snapshot.approvals).toHaveLength(1);
+    expect(snapshot.approvals[0]).toMatchObject({
+      id: "approval-1",
+      status: "revision_requested",
+    });
+    expect(snapshot.approvals[0]?.updatedAt.toISOString()).toBe("2026-04-22T12:10:00.000Z");
+  });
+
   it("forwards the abort signal to every snapshot request", async () => {
     const fetchMock = vi
       .fn()

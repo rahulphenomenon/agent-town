@@ -113,17 +113,20 @@ export const paperclipApi = {
       ),
       request<ActivityEvent[]>(`/companies/${encodeURIComponent(companyId)}/activity`, { signal }),
     ]);
-    const approvals = Array.from(
-      new Map(
-        [...pendingApprovals, ...revisionRequestedApprovals].map((approval) => [approval.id, approval]),
-      ).values(),
-    );
+    const approvalsById = new Map<string, Approval>();
+
+    for (const approval of [...pendingApprovals, ...revisionRequestedApprovals].map(normalizeApproval)) {
+      const existing = approvalsById.get(approval.id);
+      if (!existing || approval.updatedAt.getTime() >= existing.updatedAt.getTime()) {
+        approvalsById.set(approval.id, approval);
+      }
+    }
 
     return {
       company: normalizeCompany(company),
       agents: agents.map(normalizeAgent),
       issues: issues.map(normalizeIssue),
-      approvals: approvals.map(normalizeApproval),
+      approvals: Array.from(approvalsById.values()),
       activity: activity.map(normalizeActivityEvent),
     };
   },
