@@ -58,9 +58,10 @@ tests/release-smoke/playwright-report/
 .worktrees/
 
 # office workspace
-office/node_modules/
-office/dist/
-office/.vite/
-office/coverage/
+office/node_modules
+office/dist
+office/.vite
+office/coverage
 office/.env.local
 ui/.env.local
+.env.local
