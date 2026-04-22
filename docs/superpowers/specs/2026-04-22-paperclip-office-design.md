@@ -197,6 +197,25 @@ Pressing `E` near an agent opens a native in-world dialog with:
 
 The dialog should be native to the game UI, not a full tracker rebuild.
 
+### Action Inbox
+
+Any item that needs human attention should surface through a unified in-game action inbox rather than scattered controls.
+
+For v1, this includes:
+
+- approvals the CEO needs to make
+- tags or mentions directed at the CEO
+- other Paperclip states that clearly require human input
+
+The inbox behavior should be:
+
+- show the highest-priority pending item as a modal in-game dialog
+- if multiple items are waiting, keep them in a queue
+- show a lightweight queue indicator so the player knows more items are pending
+- process them one after another for now
+
+This same interaction model applies to hiring approvals and other future “boss action required” workflows.
+
 ### Hiring Flow
 
 Hiring should be accessible from anywhere in the office through an in-game popup, since the CEO can request a hire at any time.
@@ -268,6 +287,7 @@ Build:
 - Paperclip-backed agent rendering
 - a simple world-state mapper
 - in-world dialogs for agent interaction
+- an in-game action inbox with sequential queued dialogs for boss-required actions
 - hire popup with approval flow
 - fire action
 - chat/feedback via Paperclip comments
@@ -335,6 +355,7 @@ Responsibilities:
 
 - pixel-style popups
 - interaction dialogs
+- action inbox / notification queue for CEO-required actions
 - hire popup
 - top-right `View in Tracker` button
 
