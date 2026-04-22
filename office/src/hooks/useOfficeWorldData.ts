@@ -5,7 +5,7 @@ import type { OfficeSnapshot } from "@/types/office";
 export function useOfficeWorldData(companyId: string | null | undefined) {
   return useQuery<OfficeSnapshot>({
     queryKey: ["office-snapshot", companyId],
-    queryFn: () => paperclipApi.loadOfficeSnapshot(companyId!),
+    queryFn: ({ signal }) => paperclipApi.loadOfficeSnapshot(companyId!, signal),
     enabled: Boolean(companyId),
     refetchInterval: 1500,
     staleTime: 1000,

@@ -12,14 +12,13 @@ import type {
 import { request } from "./client";
 
 export const paperclipApi = {
-  async loadOfficeSnapshot(companyId: string): Promise<OfficeSnapshot> {
-    const company = await request<Company>(`/companies/${encodeURIComponent(companyId)}`);
-
-    const [agents, issues, approvals, activity] = await Promise.all([
-      request<Agent[]>(`/companies/${encodeURIComponent(company.id)}/agents`),
-      request<Issue[]>(`/companies/${encodeURIComponent(company.id)}/issues`),
-      request<Approval[]>(`/companies/${encodeURIComponent(company.id)}/approvals?status=pending`),
-      request<ActivityEvent[]>(`/companies/${encodeURIComponent(company.id)}/activity`),
+  async loadOfficeSnapshot(companyId: string, signal?: AbortSignal): Promise<OfficeSnapshot> {
+    const [company, agents, issues, approvals, activity] = await Promise.all([
+      request<Company>(`/companies/${encodeURIComponent(companyId)}`, { signal }),
+      request<Agent[]>(`/companies/${encodeURIComponent(companyId)}/agents`, { signal }),
+      request<Issue[]>(`/companies/${encodeURIComponent(companyId)}/issues`, { signal }),
+      request<Approval[]>(`/companies/${encodeURIComponent(companyId)}/approvals?status=pending`, { signal }),
+      request<ActivityEvent[]>(`/companies/${encodeURIComponent(companyId)}/activity`, { signal }),
     ]);
 
     return {

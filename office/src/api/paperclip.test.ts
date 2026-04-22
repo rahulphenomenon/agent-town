@@ -62,6 +62,36 @@ describe("paperclipApi", () => {
     );
   });
 
+  it("starts all office snapshot requests in parallel once the company id is known", async () => {
+    let resolveCompany: (value: Response) => void = () => {
+      throw new Error("Expected company resolver to be captured.");
+    };
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveCompany = resolve;
+          }),
+      )
+      .mockResolvedValueOnce(jsonResponse([{ id: "agent-1" }]))
+      .mockResolvedValueOnce(jsonResponse([{ id: "issue-1" }]))
+      .mockResolvedValueOnce(jsonResponse([{ id: "approval-1" }]))
+      .mockResolvedValueOnce(jsonResponse([{ id: "activity-1" }]));
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const snapshotPromise = paperclipApi.loadOfficeSnapshot("company-1");
+
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+
+    resolveCompany(jsonResponse({ id: "company-1", name: "Acme", issuePrefix: "ACME" }));
+
+    await expect(snapshotPromise).resolves.toMatchObject({
+      company: { id: "company-1" },
+    });
+  });
+
   it("sends Paperclip action calls to the correct endpoints", async () => {
     const fetchMock = vi
       .fn()
@@ -133,6 +163,36 @@ describe("paperclipApi", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(
       6,
       "/api/agents/agent-1/terminate",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({}),
+      }),
+    );
+  });
+
+  it("omits optional action fields when they are undefined", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({}))
+      .mockResolvedValueOnce(jsonResponse({}));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await paperclipApi.addIssueComment("issue-1", "Just checking in.");
+    await paperclipApi.approveHire("approval-1");
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/issues/issue-1/comments",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          body: "Just checking in.",
+        }),
+      }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/approvals/approval-1/approve",
       expect.objectContaining({
         method: "POST",
         body: JSON.stringify({}),
