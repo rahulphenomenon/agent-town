@@ -229,11 +229,13 @@ By default, agents run on scheduled heartbeats and event-based triggers (task as
 
 ```bash
 pnpm dev              # Full dev (API + UI, watch mode)
+pnpm dev:office       # Office app (Phaser + React overlays)
 pnpm dev:once         # Full dev without file watching
 pnpm dev:server       # Server only
 pnpm build            # Build all
 pnpm typecheck        # Type checking
 pnpm test             # Cheap default test run (Vitest only)
+pnpm test:office      # Office workspace tests
 pnpm test:watch       # Vitest watch mode
 pnpm test:e2e         # Playwright browser suite
 pnpm db:generate      # Generate DB migration
@@ -243,6 +245,24 @@ pnpm db:migrate       # Apply migrations
 `pnpm test` does not run Playwright. Browser suites stay separate and are typically run only when working on those flows or in CI.
 
 See [doc/DEVELOPING.md](doc/DEVELOPING.md) for the full development guide.
+
+## Paperclip Office Demo
+
+Run both apps:
+
+```bash
+pnpm dev
+pnpm dev:office
+```
+
+Then open `http://localhost:3100/office` and verify:
+
+- player movement and collisions work
+- agents move between the water cooler, couch, chat nook, and desks from live Paperclip state
+- pending approvals and `@CEO` mentions appear in the action inbox queue
+- `E` opens the agent dialog
+- `Hire agent` opens the office hire modal
+- `View in Tracker` returns to the company tracker
 
 <br/>
 
