@@ -178,26 +178,12 @@ function isHeadingToDesk(issue: Issue | null) {
   return issue?.status === "todo";
 }
 
-function getMentionedAgentId(event: ActivityEvent) {
-  const detailCandidate =
-    event.details?.mentionedAgentId ??
-    event.details?.targetAgentId ??
-    event.details?.assigneeAgentId;
-
-  return typeof detailCandidate === "string" && detailCandidate.length > 0 ? detailCandidate : null;
-}
-
 function getConversationPartner(
   event: ActivityEvent,
   issueById: Map<string, Issue>,
 ) {
   const actorId = event.actorId;
   if (!actorId) return null;
-
-  const mentionedAgentId = getMentionedAgentId(event);
-  if (event.action === "issue_comment_mentioned" && mentionedAgentId && mentionedAgentId !== actorId) {
-    return { left: actorId, right: mentionedAgentId };
-  }
 
   if (
     event.action !== "issue.comment_added" &&

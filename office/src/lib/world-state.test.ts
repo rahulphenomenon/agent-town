@@ -334,7 +334,7 @@ describe("deriveOfficeAgents", () => {
     expect(result.find((agent) => agent.agentId === "agent-2")?.talkingWith).toBe("agent-1");
   });
 
-  it("infers talking from recent interaction and mention signals", () => {
+  it("infers talking from recent interaction signals", () => {
     const result = deriveOfficeAgents({
       agents: [
         createAgent({ id: "agent-1", name: "CEO", status: "idle" }),
@@ -362,18 +362,6 @@ describe("deriveOfficeAgents", () => {
             interactionStatus: "answered",
           },
           createdAt: new Date(NOW - 20_000),
-        }),
-        createActivity({
-          id: "event-2",
-          action: "issue_comment_mentioned",
-          entityId: "issue-1",
-          actorId: "agent-2",
-          agentId: "agent-2",
-          details: {
-            mentionedAgentId: "agent-1",
-            bodySnippet: "@CEO can you review the launch banner?",
-          },
-          createdAt: new Date(NOW - 10_000),
         }),
       ],
       previous: new Map(),
