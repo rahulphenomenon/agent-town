@@ -4,6 +4,7 @@ import { ActionInboxDialog } from "./components/ActionInboxDialog";
 import { AgentDialog } from "./components/AgentDialog";
 import type { CompanyBoardStaffMember } from "./components/CompanyBoardDialog";
 import { CompanyBoardDialog } from "./components/CompanyBoardDialog";
+import { SoundButton } from "./components/SoundButton";
 import { TrackerButton } from "./components/TrackerButton";
 
 export interface OfficeShellCompanyBoard {
@@ -28,7 +29,9 @@ interface OfficeShellProps {
   companyBoardOpen?: boolean;
   onOpenCompanyBoard?: () => void;
   onCloseCompanyBoard?: () => void;
+  soundStepIndex: number;
   onOpenHire: () => void;
+  onToggleSound: () => void;
   onOpenTrackerHome: () => void;
   onApproveAction: () => void;
   onOpenActionContext: () => void;
@@ -55,7 +58,9 @@ export function OfficeShell({
   companyBoard,
   companyBoardOpen = false,
   onCloseCompanyBoard,
+  soundStepIndex,
   onOpenHire,
+  onToggleSound,
   onOpenTrackerHome,
   onApproveAction,
   onOpenActionContext,
@@ -98,6 +103,7 @@ export function OfficeShell({
           <button type="button" className="office-button" disabled={!canHire} onClick={onOpenHire}>
             Hire agent
           </button>
+          <SoundButton stepIndex={soundStepIndex} onClick={onToggleSound} />
           <TrackerButton onClick={onOpenTrackerHome} />
         </div>
 
