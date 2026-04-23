@@ -1,0 +1,366 @@
+:root {
+  color: #f5efe2;
+  background:
+    radial-gradient(circle at top left, rgba(241, 192, 109, 0.24), transparent 32%),
+    linear-gradient(180deg, #1f2430 0%, #141822 100%);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.office-app {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.office-shell {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+  max-width: 1120px;
+  margin: 0 auto 28px;
+}
+
+.office-shell__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.office-brand {
+  max-width: 680px;
+}
+
+.office-eyebrow {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  color: #f3bf6b;
+}
+
+.office-brand h1 {
+  margin: 0;
+  font-size: clamp(3rem, 6vw, 5.5rem);
+  line-height: 0.95;
+}
+
+.office-summary {
+  max-width: 38rem;
+  margin: 18px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(245, 239, 226, 0.78);
+}
+
+.office-button {
+  border: 1px solid rgba(243, 191, 107, 0.4);
+  background: rgba(243, 191, 107, 0.12);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.9rem 1.2rem;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.office-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(243, 191, 107, 0.72);
+}
+
+.office-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.office-button--secondary {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.office-button--danger {
+  background: rgba(220, 38, 38, 0.18);
+  border-color: rgba(248, 113, 113, 0.45);
+}
+
+.office-stage {
+  max-width: 1120px;
+  min-height: 420px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(11, 14, 21, 0.72);
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.35);
+}
+
+.office-panel {
+  height: 100%;
+  border-radius: 20px;
+  border: 1px solid rgba(243, 191, 107, 0.16);
+  background: linear-gradient(135deg, rgba(243, 191, 107, 0.12), rgba(255, 255, 255, 0.02));
+  padding: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+.office-panel canvas {
+  display: block;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 auto;
+}
+
+.office-panel__hud {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.office-panel__hud p {
+  margin: 0;
+  max-width: 38rem;
+  color: rgba(245, 239, 226, 0.82);
+}
+
+.office-panel__viewport {
+  position: relative;
+  min-height: 384px;
+}
+
+.office-canvas-mount {
+  position: relative;
+  z-index: 1;
+}
+
+.office-stage-canvas {
+  width: 100%;
+  max-width: 768px;
+  min-height: 384px;
+  margin: 0 auto;
+}
+
+.office-panel__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.office-status {
+  display: inline-flex;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(60, 185, 142, 0.14);
+  color: #7ee1b7;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+}
+
+.office-dialog {
+  width: min(360px, 100%);
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(243, 191, 107, 0.22);
+  background: linear-gradient(180deg, rgba(14, 19, 28, 0.94), rgba(24, 31, 46, 0.92));
+  box-shadow: 0 18px 48px rgba(5, 8, 14, 0.45);
+  backdrop-filter: blur(18px);
+  pointer-events: auto;
+}
+
+.office-dialog--action-inbox {
+  margin-left: auto;
+}
+
+.office-dialog--agent {
+  align-self: flex-end;
+}
+
+.office-dialog--hire {
+  width: min(540px, 100%);
+}
+
+.office-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.office-dialog__header h2 {
+  margin: 6px 0 0;
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.office-dialog__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.office-dialog__eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.74rem;
+  color: rgba(243, 191, 107, 0.86);
+}
+
+.office-dialog__meta {
+  margin: 0;
+  color: rgba(245, 239, 226, 0.62);
+  font-size: 0.86rem;
+}
+
+.office-dialog__section {
+  margin-top: 16px;
+}
+
+.office-dialog__section h3 {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(245, 239, 226, 0.6);
+}
+
+.office-dialog__section p,
+.office-dialog__body {
+  margin: 0;
+  color: rgba(245, 239, 226, 0.88);
+  line-height: 1.55;
+}
+
+.office-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.office-dialog__field span {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(245, 239, 226, 0.62);
+}
+
+.office-dialog__field input,
+.office-dialog__field select,
+.office-dialog__field textarea {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  padding: 0.9rem 1rem;
+  font: inherit;
+}
+
+.office-dialog__field textarea {
+  resize: vertical;
+}
+
+.office-dialog__field input::placeholder,
+.office-dialog__field textarea::placeholder {
+  color: rgba(245, 239, 226, 0.42);
+}
+
+.office-dialog__form {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.office-dialog__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.office-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 11, 16, 0.54);
+  backdrop-filter: blur(12px);
+}
+
+@media (max-width: 720px) {
+  .office-app {
+    padding: 20px;
+  }
+
+  .office-shell {
+    gap: 18px;
+  }
+
+  .office-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .office-shell__actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .office-stage {
+    min-height: 320px;
+    padding: 20px;
+  }
+
+  .office-panel {
+    padding: 18px;
+  }
+
+  .office-panel__overlay {
+    position: static;
+    padding: 18px 0 0;
+    flex-direction: column;
+  }
+
+  .office-dialog,
+  .office-dialog--action-inbox,
+  .office-dialog--agent {
+    width: 100%;
+    margin-left: 0;
+    align-self: auto;
+  }
+
+  .office-stage-canvas {
+    min-height: 280px;
+  }
+}
