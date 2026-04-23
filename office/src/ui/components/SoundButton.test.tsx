@@ -21,4 +21,12 @@ describe("SoundButton", () => {
 
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
+
+  it("describes blocked autoplay so the selected volume does not look active when music is not playing", () => {
+    render(<SoundButton stepIndex={2} blocked onClick={() => undefined} />);
+
+    expect(
+      screen.getByRole("button", { name: "Sound volume 50%, press to start music" }),
+    ).toBeInTheDocument();
+  });
 });

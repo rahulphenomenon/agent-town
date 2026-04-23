@@ -6,22 +6,27 @@ import {
 interface SoundButtonProps {
   stepIndex: number;
   onClick: () => void;
+  blocked?: boolean;
   disabled?: boolean;
 }
 
 export function SoundButton({
   stepIndex,
   onClick,
+  blocked = false,
   disabled = false,
 }: SoundButtonProps) {
   const activeBars = getActiveSoundBars(stepIndex);
   const volumeLabel = getSoundtrackVolumeLabel(stepIndex);
+  const accessibilityLabel = blocked && stepIndex > 0
+    ? `Sound volume ${volumeLabel}, press to start music`
+    : `Sound volume ${volumeLabel}`;
 
   return (
     <button
       type="button"
       className="office-button office-button--sound office-sound-button"
-      aria-label={`Sound volume ${volumeLabel}`}
+      aria-label={accessibilityLabel}
       onClick={onClick}
       disabled={disabled}
     >

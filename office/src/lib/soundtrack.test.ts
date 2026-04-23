@@ -3,6 +3,7 @@ import {
   SOUNDTRACK_VOLUME_STEPS,
   getActiveSoundBars,
   getNextSoundtrackStep,
+  PlaybackState,
   syncSoundtrackPlayback,
 } from "./soundtrack";
 
@@ -29,7 +30,7 @@ describe("soundtrack helpers", () => {
     const pause = vi.fn();
     const audio = { loop: false, volume: 0, play, pause };
 
-    await syncSoundtrackPlayback(audio, 2);
+    await expect(syncSoundtrackPlayback(audio, 2)).resolves.toBe(PlaybackState.Playing);
 
     expect(audio.loop).toBe(true);
     expect(audio.volume).toBe(0.5);
@@ -42,11 +43,24 @@ describe("soundtrack helpers", () => {
     const pause = vi.fn();
     const audio = { loop: false, volume: 1, play, pause };
 
-    await syncSoundtrackPlayback(audio, 0);
+    await expect(syncSoundtrackPlayback(audio, 0)).resolves.toBe(PlaybackState.Paused);
 
     expect(audio.loop).toBe(true);
     expect(audio.volume).toBe(0);
     expect(pause).toHaveBeenCalledTimes(1);
     expect(play).not.toHaveBeenCalled();
+  });
+
+  it("reports blocked autoplay when play rejects at a non-zero volume", async () => {
+    const play = vi.fn().mockRejectedValue(new DOMException("Blocked", "NotAllowedError"));
+    const pause = vi.fn();
+    const audio = { loop: false, volume: 0, play, pause };
+
+    await expect(syncSoundtrackPlayback(audio, 2)).resolves.toBe(PlaybackState.Blocked);
+
+    expect(audio.loop).toBe(true);
+    expect(audio.volume).toBe(0.5);
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(pause).not.toHaveBeenCalled();
   });
 });

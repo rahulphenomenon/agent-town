@@ -30,6 +30,7 @@ interface OfficeShellProps {
   onOpenCompanyBoard?: () => void;
   onCloseCompanyBoard?: () => void;
   soundStepIndex: number;
+  soundBlocked?: boolean;
   onOpenHire: () => void;
   onToggleSound: () => void;
   onOpenTrackerHome: () => void;
@@ -59,6 +60,7 @@ export function OfficeShell({
   companyBoardOpen = false,
   onCloseCompanyBoard,
   soundStepIndex,
+  soundBlocked = false,
   onOpenHire,
   onToggleSound,
   onOpenTrackerHome,
@@ -103,7 +105,7 @@ export function OfficeShell({
           <button type="button" className="office-button" disabled={!canHire} onClick={onOpenHire}>
             Hire agent
           </button>
-          <SoundButton stepIndex={soundStepIndex} onClick={onToggleSound} />
+          <SoundButton stepIndex={soundStepIndex} blocked={soundBlocked} onClick={onToggleSound} />
           <TrackerButton onClick={onOpenTrackerHome} />
         </div>
 
