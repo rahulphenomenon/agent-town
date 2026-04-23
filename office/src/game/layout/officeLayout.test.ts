@@ -21,4 +21,10 @@ describe("officeLayout", () => {
       ]),
     );
   });
+
+  it("routes new hires through the bottom-right entrance lane", () => {
+    const route = getRouteForZones("spawn", "desk-8");
+
+    expect(route.map((node) => node.id)).toEqual(["spawn", "hallway-entry", "desk-8"]);
+  });
 });

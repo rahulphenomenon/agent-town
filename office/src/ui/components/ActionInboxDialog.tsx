@@ -31,23 +31,32 @@ export function ActionInboxDialog({
     return null;
   }
 
-  return (
+  const isApproval = item.kind === "approval";
+
+  const dialog = (
     <aside
-      className="office-dialog office-dialog--action-inbox"
+      className={`office-dialog office-dialog--action-inbox${isApproval ? " office-dialog--approval" : ""}`}
       aria-label="Office action inbox"
+      role={isApproval ? "alertdialog" : "dialog"}
+      aria-modal={isApproval || undefined}
     >
       <header className="office-dialog__header">
         <div>
-          <p className="office-dialog__eyebrow">Action inbox</p>
+          <p className="office-dialog__eyebrow">{isApproval ? "Urgent approval" : "Action inbox"}</p>
           <h2>{item.title}</h2>
         </div>
         <p className="office-dialog__meta">{queueSummary(queuedCount)}</p>
       </header>
 
       <p className="office-dialog__body">{item.body}</p>
+      {isApproval ? (
+        <p className="office-dialog__meta office-dialog__note">
+          Approval is blocking. Resolve it before returning to routine office flow.
+        </p>
+      ) : null}
 
       <div className="office-dialog__actions">
-        {item.kind === "approval" ? (
+        {isApproval ? (
           <button type="button" className="office-button" onClick={onApprove}>
             Approve
           </button>
@@ -55,10 +64,18 @@ export function ActionInboxDialog({
         <button type="button" className="office-button" onClick={onOpenContext}>
           Open context
         </button>
-        <button type="button" className="office-button office-button--secondary" onClick={onDismiss}>
-          Next
-        </button>
+        {isApproval ? null : (
+          <button type="button" className="office-button office-button--secondary" onClick={onDismiss}>
+            Next
+          </button>
+        )}
       </div>
     </aside>
   );
+
+  if (isApproval) {
+    return <div className="office-modal-backdrop office-modal-backdrop--urgent">{dialog}</div>;
+  }
+
+  return <div className="office-dialog-layer">{dialog}</div>;
 }

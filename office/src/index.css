@@ -1,208 +1,279 @@
 :root {
-  color: #f5efe2;
+  --office-ink: #1c1718;
+  --office-night: #101722;
+  --office-night-2: #1a2433;
+  --office-paper: #f2dfb0;
+  --office-paper-2: #ddbf74;
+  --office-paper-3: #fff4d8;
+  --office-wood: #6f4f38;
+  --office-wood-2: #9b7353;
+  --office-red: #9a433d;
+  --office-red-2: #e49884;
+  --office-green: #2f6b55;
+  --office-green-2: #91d6a3;
+  --office-line: #2d221d;
+  --office-shadow: rgba(7, 10, 15, 0.45);
+  color: var(--office-paper-3);
   background:
-    radial-gradient(circle at top left, rgba(241, 192, 109, 0.24), transparent 32%),
-    linear-gradient(180deg, #1f2430 0%, #141822 100%);
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    radial-gradient(circle at top left, rgba(232, 192, 108, 0.18), transparent 24%),
+    radial-gradient(circle at top right, rgba(92, 123, 176, 0.18), transparent 28%),
+    linear-gradient(180deg, #111722 0%, #080b11 100%);
+  font-family: "Monaco", "Menlo", "Consolas", monospace;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 .office-app {
+  position: relative;
   min-height: 100vh;
-  padding: 32px;
 }
 
-.office-shell {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 24px;
-  max-width: 1120px;
-  margin: 0 auto 28px;
+.office-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(255, 226, 166, 0.06), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%),
+    #0a0e15;
 }
 
-.office-shell__actions {
+.office-stage__viewport,
+.office-stage-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.office-stage-canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.office-stage__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.office-stage__toolbar,
+.office-stage__hud,
+.office-modal-backdrop,
+.office-dialog-layer {
+  pointer-events: auto;
+}
+
+.office-stage__toolbar {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   display: flex;
-  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
-.office-brand {
-  max-width: 680px;
+.office-stage__hud {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  max-width: min(330px, calc(100vw - 40px));
+  padding: 11px 13px;
+  border: 4px solid var(--office-line);
+  background:
+    linear-gradient(180deg, rgba(17, 25, 36, 0.94), rgba(12, 16, 23, 0.92)),
+    rgba(12, 16, 23, 0.82);
+  opacity: 1;
+  box-shadow:
+    0 0 0 4px rgba(6, 9, 14, 0.32),
+    0 18px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  transition:
+    transform 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease;
 }
 
-.office-eyebrow {
-  margin: 0 0 12px;
+.office-stage__hud:hover,
+.office-stage__hud:focus-within,
+.office-stage__hud:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(242, 223, 176, 0.42);
+  box-shadow:
+    0 0 0 4px rgba(6, 9, 14, 0.3),
+    0 16px 34px rgba(0, 0, 0, 0.3);
+}
+
+.office-stage__hud:focus-visible {
+  outline: 2px solid rgba(242, 223, 176, 0.48);
+  outline-offset: 4px;
+}
+
+.office-stage__hud-eyebrow,
+.office-dialog__eyebrow,
+.office-dialog__section h3,
+.office-dialog__field span {
+  margin: 0;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.16em;
+}
+
+.office-stage__hud-eyebrow {
+  color: rgba(242, 223, 176, 0.78);
+}
+
+.office-stage__hud-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.office-stage__hud-copy {
+  margin: 8px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: rgba(255, 244, 216, 0.76);
+}
+
+.office-stage__hud-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.office-stage__hud-stat {
+  padding: 0.28rem 0.45rem;
+  border: 2px solid rgba(242, 223, 176, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 244, 216, 0.76);
   font-size: 0.78rem;
-  color: #f3bf6b;
 }
 
-.office-brand h1 {
-  margin: 0;
-  font-size: clamp(3rem, 6vw, 5.5rem);
-  line-height: 0.95;
-}
-
-.office-summary {
-  max-width: 38rem;
-  margin: 18px 0 0;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  color: rgba(245, 239, 226, 0.78);
+.office-stage__hud-stat strong {
+  color: var(--office-paper-3);
 }
 
 .office-button {
-  border: 1px solid rgba(243, 191, 107, 0.4);
-  background: rgba(243, 191, 107, 0.12);
-  color: inherit;
-  border-radius: 999px;
-  padding: 0.9rem 1.2rem;
-  font: inherit;
-  white-space: nowrap;
+  border: 3px solid var(--office-line);
+  padding: 0.82rem 1.08rem;
+  background: linear-gradient(180deg, var(--office-paper), var(--office-paper-2));
+  color: var(--office-line);
+  box-shadow:
+    inset 0 -4px 0 rgba(83, 53, 34, 0.16),
+    0 6px 0 rgba(0, 0, 0, 0.16);
   cursor: pointer;
   transition:
-    transform 140ms ease,
-    border-color 140ms ease,
-    background 140ms ease;
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    filter 120ms ease;
 }
 
 .office-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  border-color: rgba(243, 191, 107, 0.72);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 -4px 0 rgba(83, 53, 34, 0.16),
+    0 9px 0 rgba(0, 0, 0, 0.15);
+  filter: saturate(1.04);
 }
 
 .office-button:disabled {
-  opacity: 0.48;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  box-shadow:
+    inset 0 -4px 0 rgba(83, 53, 34, 0.16),
+    0 6px 0 rgba(0, 0, 0, 0.12);
 }
 
 .office-button--secondary {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #d8e4ff, #a8c0f2);
 }
 
 .office-button--danger {
-  background: rgba(220, 38, 38, 0.18);
-  border-color: rgba(248, 113, 113, 0.45);
-}
-
-.office-stage {
-  max-width: 1120px;
-  min-height: 420px;
-  margin: 0 auto;
-  padding: 28px;
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(11, 14, 21, 0.72);
-  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.35);
-}
-
-.office-panel {
-  height: 100%;
-  border-radius: 20px;
-  border: 1px solid rgba(243, 191, 107, 0.16);
-  background: linear-gradient(135deg, rgba(243, 191, 107, 0.12), rgba(255, 255, 255, 0.02));
-  padding: 24px;
-  overflow: hidden;
-  position: relative;
-}
-
-.office-panel canvas {
-  display: block;
-  width: 100% !important;
-  height: auto !important;
-  margin: 0 auto;
-}
-
-.office-panel__hud {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.office-panel__hud p {
-  margin: 0;
-  max-width: 38rem;
-  color: rgba(245, 239, 226, 0.82);
-}
-
-.office-panel__viewport {
-  position: relative;
-  min-height: 384px;
-}
-
-.office-canvas-mount {
-  position: relative;
-  z-index: 1;
-}
-
-.office-stage-canvas {
-  width: 100%;
-  max-width: 768px;
-  min-height: 384px;
-  margin: 0 auto;
-}
-
-.office-panel__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
-  pointer-events: none;
+  background: linear-gradient(180deg, var(--office-red-2), var(--office-red));
+  color: #fff4e7;
 }
 
 .office-status {
   display: inline-flex;
-  padding: 0.35rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(60, 185, 142, 0.14);
-  color: #7ee1b7;
-  font-size: 0.82rem;
-  letter-spacing: 0.04em;
+  align-items: center;
+  padding: 0.32rem 0.58rem;
+  border: 2px solid rgba(145, 214, 163, 0.28);
+  background: rgba(47, 107, 85, 0.24);
+  color: var(--office-green-2);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.office-modal-backdrop,
+.office-dialog-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.office-modal-backdrop {
+  background: rgba(8, 11, 16, 0.5);
+}
+
+.office-modal-backdrop--urgent {
+  background: rgba(34, 11, 11, 0.62);
 }
 
 .office-dialog {
-  width: min(360px, 100%);
-  padding: 18px;
-  border-radius: 24px;
-  border: 1px solid rgba(243, 191, 107, 0.22);
-  background: linear-gradient(180deg, rgba(14, 19, 28, 0.94), rgba(24, 31, 46, 0.92));
-  box-shadow: 0 18px 48px rgba(5, 8, 14, 0.45);
-  backdrop-filter: blur(18px);
-  pointer-events: auto;
+  width: min(680px, calc(100vw - 40px));
+  border: 4px solid var(--office-line);
+  background:
+    linear-gradient(180deg, rgba(253, 244, 221, 0.98), rgba(234, 215, 171, 0.96));
+  color: var(--office-line);
+  box-shadow:
+    0 0 0 4px rgba(16, 12, 15, 0.3),
+    0 24px 48px var(--office-shadow);
 }
 
-.office-dialog--action-inbox {
-  margin-left: auto;
+.office-dialog--approval {
+  width: min(620px, calc(100vw - 40px));
 }
 
-.office-dialog--agent {
-  align-self: flex-end;
-}
-
+.office-dialog--agent,
 .office-dialog--hire {
-  width: min(540px, 100%);
+  width: min(720px, calc(100vw - 40px));
+}
+
+.office-dialog--board {
+  width: min(840px, calc(100vw - 40px));
 }
 
 .office-dialog__header {
@@ -210,12 +281,14 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding: 18px 20px 14px;
+  border-bottom: 3px solid rgba(45, 34, 29, 0.14);
 }
 
 .office-dialog__header h2 {
-  margin: 6px 0 0;
-  font-size: 1.45rem;
-  line-height: 1.1;
+  margin: 8px 0 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1;
 }
 
 .office-dialog__header-actions {
@@ -226,141 +299,199 @@ body {
   justify-content: flex-end;
 }
 
-.office-dialog__eyebrow {
+.office-dialog__meta,
+.office-dialog__note {
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 0.74rem;
-  color: rgba(243, 191, 107, 0.86);
+  color: rgba(45, 34, 29, 0.72);
+  line-height: 1.45;
 }
 
-.office-dialog__meta {
+.office-dialog__body {
   margin: 0;
-  color: rgba(245, 239, 226, 0.62);
-  font-size: 0.86rem;
+  padding: 18px 20px 0;
+  line-height: 1.6;
+}
+
+.office-dialog__body--compact {
+  padding-top: 0;
 }
 
 .office-dialog__section {
-  margin-top: 16px;
+  padding: 18px 20px 0;
 }
 
 .office-dialog__section h3 {
-  margin: 0 0 8px;
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(245, 239, 226, 0.6);
+  color: rgba(77, 57, 39, 0.72);
 }
 
-.office-dialog__section p,
-.office-dialog__body {
-  margin: 0;
-  color: rgba(245, 239, 226, 0.88);
-  line-height: 1.55;
+.office-dialog__section p {
+  margin: 10px 0 0;
+  line-height: 1.6;
+}
+
+.office-dialog__form {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 20px;
 }
 
 .office-dialog__field {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 8px;
-}
-
-.office-dialog__field span {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(245, 239, 226, 0.62);
 }
 
 .office-dialog__field input,
 .office-dialog__field select,
 .office-dialog__field textarea {
   width: 100%;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.06);
-  color: inherit;
-  padding: 0.9rem 1rem;
-  font: inherit;
-}
-
-.office-dialog__field textarea {
+  border: 3px solid rgba(45, 34, 29, 0.18);
+  background: rgba(255, 251, 239, 0.82);
+  color: var(--office-line);
+  padding: 0.82rem 0.9rem;
   resize: vertical;
-}
-
-.office-dialog__field input::placeholder,
-.office-dialog__field textarea::placeholder {
-  color: rgba(245, 239, 226, 0.42);
-}
-
-.office-dialog__form {
-  display: grid;
-  gap: 14px;
-  margin-top: 18px;
 }
 
 .office-dialog__actions {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
-  margin-top: 18px;
+  gap: 12px;
+  padding: 18px 20px 20px;
 }
 
-.office-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
+.office-dialog__warning {
+  margin: 0;
+  padding: 0 20px 20px;
+  color: #7c271f;
+}
+
+.office-board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 0;
+}
+
+.office-board-list,
+.office-board-staff {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.office-board-list li,
+.office-board-staff__item {
+  padding: 12px 14px;
+  border: 3px solid rgba(45, 34, 29, 0.14);
+  background: rgba(255, 250, 237, 0.62);
+  line-height: 1.45;
+}
+
+.office-board-staff__item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(8, 11, 16, 0.54);
-  backdrop-filter: blur(12px);
+  justify-content: space-between;
+  gap: 12px;
 }
 
-@media (max-width: 720px) {
-  .office-app {
-    padding: 20px;
+.office-board-staff__item strong,
+.office-board-staff__item p {
+  display: block;
+  margin: 0;
+}
+
+.office-board-staff__item p {
+  margin-top: 6px;
+  color: rgba(45, 34, 29, 0.72);
+}
+
+.office-board-staff__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.office-board-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.55rem;
+  border: 2px solid rgba(45, 34, 29, 0.14);
+  background: rgba(47, 107, 85, 0.12);
+  color: var(--office-green);
+  white-space: nowrap;
+}
+
+.office-board-badge--muted {
+  background: rgba(45, 34, 29, 0.08);
+  color: rgba(45, 34, 29, 0.72);
+}
+
+@media (max-width: 920px) {
+  .office-stage__toolbar {
+    left: 20px;
+    right: 20px;
+    top: 20px;
+    justify-content: flex-end;
   }
 
-  .office-shell {
-    gap: 18px;
+  .office-stage__hud {
+    right: 20px;
+    max-width: none;
   }
 
-  .office-button {
-    width: 100%;
-    text-align: center;
+  .office-board-grid {
+    grid-template-columns: 1fr;
   }
+}
 
-  .office-shell__actions {
-    width: 100%;
-    justify-content: stretch;
+@media (max-width: 760px) {
+  body {
+    overflow: auto;
   }
 
   .office-stage {
-    min-height: 320px;
-    padding: 20px;
+    min-height: 100vh;
+    height: auto;
   }
 
-  .office-panel {
-    padding: 18px;
+  .office-stage__viewport {
+    position: fixed;
+    inset: 0;
   }
 
-  .office-panel__overlay {
-    position: static;
-    padding: 18px 0 0;
-    flex-direction: column;
+  .office-stage__toolbar {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    right: 14px;
+    gap: 10px;
+  }
+
+  .office-stage__hud {
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    max-width: none;
+  }
+
+  .office-modal-backdrop,
+  .office-dialog-layer {
+    padding: 14px;
   }
 
   .office-dialog,
-  .office-dialog--action-inbox,
-  .office-dialog--agent {
+  .office-dialog--board,
+  .office-dialog--agent,
+  .office-dialog--hire,
+  .office-dialog--approval {
     width: 100%;
-    margin-left: 0;
-    align-self: auto;
   }
 
-  .office-stage-canvas {
-    min-height: 280px;
+  .office-dialog__header,
+  .office-dialog__actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

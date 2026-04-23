@@ -65,7 +65,11 @@ paperclip/
 ├── cli/                         # CLI client
 │   └── src/                     # Setup and control-plane commands
 │
-└── doc/                         # Internal documentation
+├── doc/                         # Internal documentation and planning
+│   ├── plans/                  # General repo plans
+│   └── superpowers/            # Superpowers-generated specs and plans
+│
+└── docs/                        # Public documentation site
 ```
 
 ## Request Flow

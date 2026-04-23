@@ -29,7 +29,8 @@ Before making changes, read in this order:
 - `packages/adapters/`: agent adapter implementations (Claude, Codex, Cursor, etc.)
 - `packages/adapter-utils/`: shared adapter utilities
 - `packages/plugins/`: plugin system packages
-- `doc/`: operational and product docs
+- `doc/`: operational and product docs, including `doc/plans/` for general repo plans and `doc/superpowers/` for Superpowers-generated specs/plans
+- `docs/`: public/user-facing documentation site content
 
 ## 4. Dev Setup (Auto DB)
 
@@ -82,7 +83,11 @@ If you change schema/API behavior, update all impacted layers:
 Prefer additive updates. Keep `doc/SPEC.md` and `doc/SPEC-implementation.md` aligned.
 
 5. Keep repo plan docs dated and centralized.
-When you are creating a plan file in the repository itself, new plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames. This does not replace Paperclip issue planning: if a Paperclip issue asks for a plan, update the issue `plan` document per the `paperclip` skill instead of creating a repo markdown file.
+When you are creating a general repo plan file in the repository itself, new plan documents belong in `doc/plans/` and should use `YYYY-MM-DD-slug.md` filenames.
+
+Superpowers-generated design specs and implementation plans belong under `doc/superpowers/specs/` and `doc/superpowers/plans/`, not under `docs/`.
+
+This does not replace Paperclip issue planning: if a Paperclip issue asks for a plan, update the issue `plan` document per the `paperclip` skill instead of creating a repo markdown file.
 
 ## 6. Database Change Workflow
 

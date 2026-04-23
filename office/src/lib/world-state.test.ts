@@ -120,7 +120,7 @@ function asPreviousMap(agents: OfficeAgentView[]) {
 }
 
 describe("deriveOfficeAgents", () => {
-  it("sends idle agents to the watercooler", () => {
+  it("sends idle agents to one of the lounge zones", () => {
     const result = deriveOfficeAgents({
       agents: [createAgent({ id: "agent-1", name: "CEO", status: "idle" })],
       issues: [],
@@ -130,8 +130,25 @@ describe("deriveOfficeAgents", () => {
       now: NOW,
     });
 
-    expect(result[0]?.targetZone).toBe("watercooler");
+    expect(["watercooler", "north-hall", "hallway-center", "couch"]).toContain(result[0]?.targetZone);
     expect(result[0]?.intent.mode).toBe("idle");
+  });
+
+  it("spreads multiple idle agents across lounge zones", () => {
+    const result = deriveOfficeAgents({
+      agents: [
+        createAgent({ id: "agent-1", name: "CEO", status: "idle" }),
+        createAgent({ id: "agent-2", name: "CTO", status: "idle" }),
+        createAgent({ id: "agent-3", name: "CMO", status: "idle" }),
+      ],
+      issues: [],
+      approvals: [],
+      activity: [],
+      previous: new Map(),
+      now: NOW,
+    });
+
+    expect(new Set(result.map((agent) => agent.targetZone)).size).toBeGreaterThan(1);
   });
 
   it("sends paused agents to the couch", () => {

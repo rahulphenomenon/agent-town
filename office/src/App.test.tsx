@@ -11,7 +11,7 @@ describe("Office App", () => {
       </QueryClientProvider>,
     );
 
-    expect(screen.getByText("Paperclip Office")).toBeInTheDocument();
+    expect(screen.getAllByText("Paperclip Office").length).toBeGreaterThan(0);
     expect(
       screen.getByRole("button", { name: /view in tracker/i }),
     ).toBeInTheDocument();

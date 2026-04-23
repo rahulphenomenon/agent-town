@@ -5,6 +5,7 @@ import type {
   Approval,
   Company,
   CreateAgentHire,
+  Goal,
   Issue,
   IssueComment,
   OfficeSnapshot,
@@ -50,6 +51,14 @@ function normalizeAgent(agent: Agent): Agent {
     lastHeartbeatAt: parseOptionalDate(agent.lastHeartbeatAt, "agent.lastHeartbeatAt"),
     createdAt: parseRequiredDate(agent.createdAt, "agent.createdAt"),
     updatedAt: parseRequiredDate(agent.updatedAt, "agent.updatedAt"),
+  };
+}
+
+function normalizeGoal(goal: Goal): Goal {
+  return {
+    ...goal,
+    createdAt: parseRequiredDate(goal.createdAt, "goal.createdAt"),
+    updatedAt: parseRequiredDate(goal.updatedAt, "goal.updatedAt"),
   };
 }
 
@@ -102,8 +111,9 @@ function normalizeHireResponse(response: AgentHireResponse): AgentHireResponse {
 
 export const paperclipApi = {
   async loadOfficeSnapshot(companyId: string, signal?: AbortSignal): Promise<OfficeSnapshot> {
-    const [company, agents, issues, pendingApprovals, revisionRequestedApprovals, activity] = await Promise.all([
+    const [company, goals, agents, issues, pendingApprovals, revisionRequestedApprovals, activity] = await Promise.all([
       request<Company>(`/companies/${encodeURIComponent(companyId)}`, { signal }),
+      request<Goal[]>(`/companies/${encodeURIComponent(companyId)}/goals`, { signal }),
       request<Agent[]>(`/companies/${encodeURIComponent(companyId)}/agents`, { signal }),
       request<Issue[]>(`/companies/${encodeURIComponent(companyId)}/issues`, { signal }),
       request<Approval[]>(`/companies/${encodeURIComponent(companyId)}/approvals?status=pending`, { signal }),
@@ -124,6 +134,7 @@ export const paperclipApi = {
 
     return {
       company: normalizeCompany(company),
+      goals: goals.map(normalizeGoal),
       agents: agents.map(normalizeAgent),
       issues: issues.map(normalizeIssue),
       approvals: Array.from(approvalsById.values()),

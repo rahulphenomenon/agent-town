@@ -10,6 +10,8 @@ import { resolveVisualIntent } from "./agent-intent";
 
 const DESK_COUNT = 8;
 const RECENT_ACTIVITY_MS = 2 * 60 * 1_000;
+const IDLE_ZONES = ["watercooler", "north-hall", "hallway-center", "couch"] as const;
+type IdleZone = (typeof IDLE_ZONES)[number];
 
 interface DeriveInput {
   agents: Agent[];
@@ -38,6 +40,10 @@ function isDeskZone(zone: string | null | undefined): zone is string {
   return typeof zone === "string" && zone.startsWith("desk-");
 }
 
+function isIdleZone(zone: string | null | undefined): zone is IdleZone {
+  return typeof zone === "string" && IDLE_ZONES.includes(zone as IdleZone);
+}
+
 function getStableDeskZone(agentId: string, previous: Map<string, OfficeAgentView>): string {
   const previousView = previous.get(agentId);
   const previousZone =
@@ -50,6 +56,46 @@ function getStableDeskZone(agentId: string, previous: Map<string, OfficeAgentVie
   }
 
   return `desk-${hashDesk(agentId) + 1}`;
+}
+
+function assignIdleZones(
+  agents: Agent[],
+  previous: Map<string, OfficeAgentView>,
+) {
+  const assignments = new Map<string, IdleZone>();
+  const availableZones = [...IDLE_ZONES];
+  const sortedAgents = [...agents].sort(
+    (left, right) => left.name.localeCompare(right.name) || left.id.localeCompare(right.id),
+  );
+
+  for (const agent of sortedAgents) {
+    const previousZone = previous.get(agent.id)?.intent.targetZone;
+    if (!isIdleZone(previousZone)) {
+      continue;
+    }
+
+    const zoneIndex = availableZones.indexOf(previousZone);
+    if (zoneIndex === -1) {
+      continue;
+    }
+
+    assignments.set(agent.id, previousZone);
+    availableZones.splice(zoneIndex, 1);
+  }
+
+  let overflowIndex = 0;
+
+  for (const agent of sortedAgents) {
+    if (assignments.has(agent.id)) {
+      continue;
+    }
+
+    const zone = availableZones.shift() ?? IDLE_ZONES[overflowIndex % IDLE_ZONES.length];
+    assignments.set(agent.id, zone);
+    overflowIndex += 1;
+  }
+
+  return assignments;
 }
 
 function getIssuePriority(issue: Issue) {
@@ -293,15 +339,38 @@ function getLatestSnippet(
 export function deriveOfficeAgents(input: DeriveInput): OfficeAgentView[] {
   const issuesByAgent = selectAgentIssues(input.issues);
   const talkingPairs = inferTalkingPairs(input.agents, input.issues, input.activity, input.now);
-
-  return input.agents.map((agent) => {
+  const agentContexts = input.agents.map((agent) => {
     const issue = issuesByAgent.get(agent.id) ?? null;
     const talkingWith = talkingPairs.get(agent.id) ?? null;
     const deskZone = getStableDeskZone(agent.id, input.previous);
     const needsAttention = isNeedsAttention(agent, issue, input.approvals, input.activity, input.now);
+    const usesIdleZone =
+      agent.status !== "terminated"
+      && agent.status !== "paused"
+      && !needsAttention
+      && !talkingWith
+      && !isHeadingToDesk(issue)
+      && !isWorkingAtDesk(agent, issue);
 
+    return {
+      agent,
+      issue,
+      talkingWith,
+      deskZone,
+      needsAttention,
+      usesIdleZone,
+    };
+  });
+  const idleZonesByAgent = assignIdleZones(
+    agentContexts
+      .filter((context) => context.usesIdleZone)
+      .map((context) => context.agent),
+    input.previous,
+  );
+
+  return agentContexts.map(({ agent, issue, talkingWith, deskZone, needsAttention }) => {
     let nextMode: OfficeIntent["mode"] = "idle";
-    let nextTargetZone = "watercooler";
+    let nextTargetZone: string = idleZonesByAgent.get(agent.id) ?? IDLE_ZONES[0];
 
     if (agent.status === "terminated") {
       nextMode = "terminated";

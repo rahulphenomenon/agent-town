@@ -74,4 +74,25 @@ describe("AgentDialog", () => {
     expect(onOpenTracker).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("button", { name: /resume agent/i })).toBeInTheDocument();
   });
+
+  it("closes on Escape when open", () => {
+    const onClose = vi.fn();
+
+    render(
+      <AgentDialog
+        open
+        agent={makeAgentView()}
+        onClose={onClose}
+        onPauseToggle={vi.fn()}
+        onFire={vi.fn()}
+        onChat={vi.fn()}
+        onOpenTicket={vi.fn()}
+        onOpenTracker={vi.fn()}
+      />,
+    );
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
