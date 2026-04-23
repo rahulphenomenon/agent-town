@@ -15,6 +15,10 @@ import {
   resolveTrackerOrigin,
 } from "@/lib/tracker-links";
 import { deriveOfficeAgents } from "@/lib/world-state";
+import {
+  getNextSoundtrackStep,
+  syncSoundtrackPlayback,
+} from "@/lib/soundtrack";
 import { OfficeShell } from "@/ui/OfficeShell";
 import { HireModal } from "@/ui/components/HireModal";
 import { useOfficeActions } from "@/ui/useOfficeActions";
@@ -24,12 +28,14 @@ type OfficeGameHandle = PhaserGame;
 export function App() {
   const stageRef = useRef<HTMLDivElement | null>(null);
   const gameRef = useRef<OfficeGameHandle | null>(null);
+  const soundtrackRef = useRef<HTMLAudioElement | null>(null);
   const previousViewsRef = useRef(new Map<string, OfficeAgentView>());
   const officeAgentsRef = useRef<OfficeAgentView[]>([]);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [dismissedActionIds, setDismissedActionIds] = useState<string[]>([]);
   const [hireModalOpen, setHireModalOpen] = useState(false);
   const [companyBoardOpen, setCompanyBoardOpen] = useState(false);
+  const [soundStepIndex, setSoundStepIndex] = useState(2);
   const [actionError, setActionError] = useState<string | null>(null);
   const companyId = useMemo(resolveOfficeCompanyId, []);
   const trackerOrigin = useMemo(
@@ -199,6 +205,22 @@ export function App() {
       ),
     );
   }, [companyBoardOpen, currentAction?.kind, hireModalOpen, selectedAgentId]);
+
+  useEffect(() => {
+    const soundtrack = soundtrackRef.current;
+
+    if (!soundtrack) {
+      return;
+    }
+
+    void syncSoundtrackPlayback(soundtrack, soundStepIndex);
+  }, [soundStepIndex]);
+
+  useEffect(() => {
+    return () => {
+      soundtrackRef.current?.pause();
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedAgentId) {
@@ -378,9 +400,11 @@ export function App() {
         companyBoardOpen={companyBoardOpen}
         onOpenCompanyBoard={() => setCompanyBoardOpen(true)}
         onCloseCompanyBoard={() => setCompanyBoardOpen(false)}
+        soundStepIndex={soundStepIndex}
         onOpenHire={() => {
           void handleOpenHire();
         }}
+        onToggleSound={() => setSoundStepIndex((currentStepIndex) => getNextSoundtrackStep(currentStepIndex))}
         onOpenTrackerHome={handleOpenTrackerHome}
         onApproveAction={() => {
           void handleApproveAction();
@@ -406,6 +430,14 @@ export function App() {
           aria-label="Phaser office stage"
         />
       </OfficeShell>
+
+      <audio
+        ref={soundtrackRef}
+        className="office-soundtrack"
+        src="/audio/soundtrack.mp3"
+        loop
+        preload="auto"
+      />
 
       <HireModal
         open={hireModalOpen}
