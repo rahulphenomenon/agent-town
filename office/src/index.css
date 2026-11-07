@@ -191,6 +191,10 @@ textarea {
     inset 0 -4px 0 rgba(83, 53, 34, 0.16),
     0 6px 0 rgba(0, 0, 0, 0.16);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
   transition:
     transform 120ms ease,
     box-shadow 120ms ease,
@@ -218,9 +222,70 @@ textarea {
   background: linear-gradient(180deg, #d8e4ff, #a8c0f2);
 }
 
+.office-button--sound {
+  min-width: 4.25rem;
+  padding-inline: 1rem;
+}
+
 .office-button--danger {
   background: linear-gradient(180deg, var(--office-red-2), var(--office-red));
   color: #fff4e7;
+}
+
+.office-sound-button__speaker {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--office-line);
+  flex: 0 0 auto;
+}
+
+.office-sound-button__speaker svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.office-sound-button__bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.18rem;
+  min-height: 1.15rem;
+}
+
+.office-sound-button__bar {
+  width: 0.22rem;
+  border-radius: 999px;
+  background: rgba(245, 239, 226, 0.18);
+  transition:
+    background 140ms ease,
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.office-sound-button__bar:nth-child(1) {
+  height: 0.4rem;
+}
+
+.office-sound-button__bar:nth-child(2) {
+  height: 0.62rem;
+}
+
+.office-sound-button__bar:nth-child(3) {
+  height: 0.84rem;
+}
+
+.office-sound-button__bar:nth-child(4) {
+  height: 1.06rem;
+}
+
+.office-sound-button__bar--active {
+  background: linear-gradient(180deg, var(--office-paper-3), var(--office-paper-2));
+  box-shadow: 0 0 12px rgba(242, 223, 176, 0.2);
+}
+
+.office-soundtrack {
+  display: none;
 }
 
 .office-status {
